@@ -1,0 +1,6 @@
+{
+    "require": {
+        "php-tui/php-tui": "^0.2.1",
+        "chrome-php/chrome": "^1.13"
+    }
+}
