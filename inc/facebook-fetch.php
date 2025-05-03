@@ -13,14 +13,13 @@ class FacebookFetch {
 	 *
 	 * @var BrowserFactory $browser
 	 */
-	private ProcessAwareBrowser $browser;
+	private BrowserFactory $browser_factory;
 
 	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
-		$browser_factory = new BrowserFactory();
-		$this->browser   = $browser_factory->createBrowser();
+		$this->browser_factory = new BrowserFactory( '/Users/jespernilsson/Development/tui-fetch/chrome-headless-shell/mac_arm-136.0.7103.49/chrome-headless-shell-mac-arm64/chrome-headless-shell' );
 	}
 
 	/**
@@ -28,10 +27,12 @@ class FacebookFetch {
 	 *
 	 * @param string $source A source url.
 	 */
-	public function get_event_urls( $source ): bool|array {
-		$events = array();
+	public function get_event_urls( $source ): array {
+		$events  = array();
+		$browser = $this->browser_factory->createBrowser();
 		try {
-			$page   = $this->browser->createPage();
+			$page = $browser->createPage();
+			$page->setUserAgent( 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36' );
 			$page->navigate( "{$source}/events/" )->waitForNavigation();
 			$page->waitUntilContainsElement( new XPathSelector( '//script[contains(text(), "actions_renderer")]' ) );
 			$elements = $page->dom()->search( '//script[contains(text(), "actions_renderer")]' );
@@ -46,7 +47,9 @@ class FacebookFetch {
 				}
 			}
 		} catch ( Exception $e ) {
-			return false;
+			return array( 'error' => $e->getMessage() );
+		} finally {
+			$browser->close();
 		}
 		return $events;
 	}
@@ -57,8 +60,10 @@ class FacebookFetch {
 	 * @param string $url The source url.
 	 */
 	public function get_event_data( string $url = '' ): bool|array {
+		$browser = $this->browser_factory->createBrowser();
 		try {
-			$page = $this->browser->createPage();
+			$page = $browser->createPage();
+			$page->setUserAgent( 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36' );
 			$page->navigate( $url )->waitForNavigation();
 			$title    = $page->dom()->search( "//head/meta[contains(@property, 'og:title')]" )[0]->getAttribute( 'content' );
 			$elements = $page->dom()->search( '//script[contains(text(), "event_description")]' );
@@ -89,7 +94,9 @@ class FacebookFetch {
 				}
 			}
 		} catch ( Exception $e ) {
-			return false;
+			return array( 'error' => $e->getMessage() );
+		} finally {
+			$browser->close();
 		}
 		return array(
 			'title'           => $title ?? null,

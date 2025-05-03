@@ -143,18 +143,20 @@ class TuiFetch {
 		$events         = array();
 		foreach ( $this->sources as $index => $source ) {
 			$events_result = $facebook_fetch->get_event_urls( $source );
-			if ( false !== $events_result ) {
+			if ( ! empty( $events_result['error'] ) ) {
+				$this->log .= "<fg=red>Error loading source ({$source}): \"{$events_result['error']}\"</>\n";
+			} else {
 				$events     = array_merge( $events, $events_result );
 				$this->log .= "<fg=white>Loading source {$source}</>\n";
-			} else {
-				$this->log .= "<fg=red>Error loading source {$source} ⚠</>\n";
 			}
 			self::print_hub( $index, count( $this->sources ), 'Loading sources' );
 		}
 
 		foreach ( $events as $index => $event ) {
 			$event_data  = $facebook_fetch->get_event_data( $event );
-			if ( false !== $event_data ) {
+			if ( ! empty( $event_data['error'] ) ) {
+				$this->log .= "<fg=red>Error loading event: \"{$event_data['error']}\"</>\n";
+			} else {
 				$file_result = self::save_event( $event_data );
 				switch ( $file_result ) {
 					case 0:
@@ -171,8 +173,6 @@ class TuiFetch {
 						break;
 				}
 				self::print_hub( $index, count( $events ), 'Loading events' );
-			} else {
-				$this->log .= "<fg=red>Error loading event.</>\n";
 			}
 		}
 
@@ -186,9 +186,6 @@ class TuiFetch {
 					break;
 				}
 			}
-			// sleep for Xms - note that it's encouraged to implement apps
-			// using an async library such as Amp or React.
-			usleep( 50_000 );
 		}
 		$this->terminal->disableRawMode();
 		$this->terminal->execute( Actions::cursorShow() );
