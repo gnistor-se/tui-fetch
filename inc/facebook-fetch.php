@@ -19,7 +19,7 @@ class FacebookFetch {
 	 * Class constructor.
 	 */
 	public function __construct() {
-		$this->browser_factory = new BrowserFactory( '/Users/jespernilsson/Development/tui-fetch/chrome-headless-shell/mac_arm-136.0.7103.49/chrome-headless-shell-mac-arm64/chrome-headless-shell' );
+		$this->browser_factory = new BrowserFactory();
 	}
 
 	/**
